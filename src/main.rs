@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use chrono::Utc;
 use sha256::digest;
 
@@ -26,7 +24,7 @@ impl Blockchain {
     fn starting_block(&mut self) {
         let genesis_block = Block {
             id: 1,
-            data: String::from("First blockchain"),
+            data: String::from("Genesis Block"),
             previous_hash: String::from(
                 "0000000000000000000000000000000000000000000000000000000000000000",
             ),
@@ -51,7 +49,6 @@ impl Blockchain {
 
             None => {
                 println!("the blockchain need the first block");
-                return;
             }
         }
     }
@@ -86,7 +83,7 @@ impl Blockchain {
     }
 
     fn validate_blockchain(self) -> bool {
-        if self.blocks.len() == 0 {
+        if self.blocks.is_empty() {
             return false;
         }
 
@@ -101,7 +98,7 @@ impl Blockchain {
 
 impl Block {
     fn new(id: u64, previous_hash: String, data: String) -> Self {
-        let now = Utc::now();
+        let _now = Utc::now();
         let now_timestamp = Utc::now().timestamp();
 
         let (nonce, hash) = Block::mine_block(id, now_timestamp, &previous_hash, &data);
@@ -145,6 +142,9 @@ fn main() {
 
     let new_block2 = Block::new(3, blockchain.blocks[1].hash.to_owned(), "Test2".to_string());
     blockchain.try_add_block(new_block2);
+
+    let new_block3 = Block::new(4, blockchain.blocks[2].hash.to_owned(), "Test3".to_string());
+    blockchain.try_add_block(new_block3);
 
     println!("status blockchain: {}", blockchain.validate_blockchain());
 }
