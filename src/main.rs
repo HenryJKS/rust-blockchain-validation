@@ -21,26 +21,37 @@ impl Blockchain {
         Self { blocks: vec![] }
     }
 
-    fn starting_block(&mut self) {
+    fn starting_block(&mut self, data: String) {
+        let id = 1;
+        let data = data;
+        let previous_hash =
+            String::from("0000000000000000000000000000000000000000000000000000000000000000");
+        let timestamp = Utc::now().timestamp();
+
+        let (nonce, hash) = Block::mine_block(id, timestamp, &previous_hash, &data);
+
         let genesis_block = Block {
-            id: 1,
-            data: String::from("Genesis Block"),
-            previous_hash: String::from(
-                "0000000000000000000000000000000000000000000000000000000000000000",
-            ),
-            nonce: 91493,
-            hash: String::from("0000b3d1d90e1c6675403a95af8a63751ebfb0f43b6c528b05d4bb54849eefee"),
-            timestamp: Utc::now().timestamp(),
+            id,
+            data,
+            previous_hash,
+            nonce,
+            hash,
+            timestamp,
         };
 
         self.blocks.push(genesis_block);
     }
 
-    fn try_add_block(&mut self, block: Block) {
+    fn try_add_block(&mut self, data: String) {
+        let previous_hash = self.blocks.last().unwrap().hash.clone();
+        let id = self.blocks.len() as u64 + 1;
+
+        let new_block = Block::new(id, previous_hash, data);
+
         match self.blocks.last() {
             Some(latest_block) => {
-                if self.is_block_valid(&block, latest_block) {
-                    self.blocks.push(block);
+                if self.is_block_valid(&new_block, latest_block) {
+                    self.blocks.push(new_block);
                     println!("Block has been successfully added");
                 } else {
                     println!("Invalid Block!");
@@ -82,7 +93,7 @@ impl Blockchain {
         true
     }
 
-    fn validate_blockchain(self) -> bool {
+    fn validate_blockchain(&self) -> bool {
         if self.blocks.is_empty() {
             return false;
         }
@@ -98,7 +109,6 @@ impl Blockchain {
 
 impl Block {
     fn new(id: u64, previous_hash: String, data: String) -> Self {
-        let _now = Utc::now();
         let now_timestamp = Utc::now().timestamp();
 
         let (nonce, hash) = Block::mine_block(id, now_timestamp, &previous_hash, &data);
@@ -133,18 +143,14 @@ impl Block {
 
 fn main() {
     let mut blockchain = Blockchain::new();
-    blockchain.starting_block();
+    blockchain.starting_block("Genesis Block".to_string());
+    println!("the first block: {:?}", blockchain.blocks[0]);
 
-    println!("the first block {:?}", blockchain);
+    blockchain.try_add_block(String::from("Second block"));
+    println!("the second block: {:?}", blockchain.blocks[1]);
 
-    let new_block = Block::new(2, blockchain.blocks[0].hash.to_owned(), "Test".to_string());
-    blockchain.try_add_block(new_block);
-
-    let new_block2 = Block::new(3, blockchain.blocks[1].hash.to_owned(), "Test2".to_string());
-    blockchain.try_add_block(new_block2);
-
-    let new_block3 = Block::new(4, blockchain.blocks[2].hash.to_owned(), "Test3".to_string());
-    blockchain.try_add_block(new_block3);
+    blockchain.try_add_block(String::from("Third block"));
+    println!("the third block: {:?}", blockchain.blocks[2]);
 
     println!("status blockchain: {}", blockchain.validate_blockchain());
 }
